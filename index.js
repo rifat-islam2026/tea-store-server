@@ -1,7 +1,7 @@
 const express = require('express');
 require('dotenv').config()
 const cors = require('cors');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -34,6 +34,45 @@ async function run() {
             const result = await teaCollection.insertOne(newTea);
             res.send(result);
             console.log(newTea)
+        })
+
+        app.get('/teas', async (req, res) => {
+            const cursor = teaCollection.find();
+            const result = await cursor.toArray();
+            res.send(result);
+        })
+        app.get('/teas/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await teaCollection.findOne(query);
+            res.send(result)
+        })
+
+        app.patch('/teas/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const options = { upsert: true };
+            const updatedTea = req.body;
+            const tea = {
+                $set: {
+                    name: updatedTea.name,
+                    quantity: updatedTea.quantity,
+                    supplier: updatedTea.supplier,
+                    taste: updatedTea.taste,
+                    price: updatedTea.price,
+                    details: updatedTea.details,
+                    photo: updatedTea.photo,
+                },
+            };
+            const result = await teaCollection.updateOne(filter, tea,options);
+            res.send(result);
+        })
+
+        app.delete('/teas/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await teaCollection.deleteOne(query);
+            res.send(result);
         })
 
         // Send a ping to confirm a successful connection
