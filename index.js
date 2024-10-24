@@ -28,6 +28,7 @@ async function run() {
         await client.connect();
 
         const teaCollection = client.db("teaDB").collection("tea");
+        const userCollection = client.db("teaDB").collection("user");
 
         app.post('/teas', async (req, res) => {
             const newTea = req.body;
@@ -72,6 +73,38 @@ async function run() {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) };
             const result = await teaCollection.deleteOne(query);
+            res.send(result);
+        })
+
+        // userdb
+        app.post('/users', async (req, res) => {
+            const users = req.body;
+            console.log(users);
+            const result = await userCollection.insertOne(users);
+            res.send(result);
+        })
+        
+        app.get('/users', async (req, res) => {
+            const cursor = await userCollection.find().toArray();
+            res.send(cursor);          
+        })
+
+        app.patch('/users', async (req, res) => {
+            const user = req.body;
+            const filter = { email: user.email };
+            const updateDoc = {
+                $set: {
+                    lastLoggedAt: user.lastLoggedAt
+                },
+            };
+            const result = await userCollection.updateOne(filter, updateDoc);
+            res.send(result);
+        })
+        
+        app.delete('/users/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await userCollection.deleteOne(query);
             res.send(result);
         })
 
